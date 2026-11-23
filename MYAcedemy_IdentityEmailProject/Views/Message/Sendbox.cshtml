@@ -1,0 +1,25 @@
+﻿@model List<MYAcedemy_IdentityEmailProject.Entities.Message>
+
+@{
+    Layout = null;
+}
+
+<table border="1" cellpadding="8">
+    <thead>
+        <tr>
+            <th>Alıcı</th>
+            <th>Konu</th>
+            <th>Gönderim Tarihi</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.ReceiverEmail</td>
+                <td>@item.Subject</td>
+                <td>@item.SendDate.ToString("dd.MM.yyyy HH:mm")</td>
+            </tr>
+        }
+    </tbody>
+</table>
