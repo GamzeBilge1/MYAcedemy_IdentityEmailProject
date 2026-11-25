@@ -1,0 +1,17 @@
+﻿<script>
+    const password = document.getElementById("Password");
+    const toggle = document.getElementById("togglePassword");
+    const icon = toggle.querySelector("i");
+
+    toggle.addEventListener("click", () => {
+        const showPassword = password.type === "password";
+        password.type = showPassword ? "text" : "password";
+
+        icon.classList.toggle("bi-eye", !showPassword);
+        icon.classList.toggle("bi-eye-slash", showPassword);
+
+        const label = showPassword ? "Şifreyi gizle" : "Şifreyi göster";
+        toggle.setAttribute("aria-label", label);
+        toggle.title = label;
+    });
+</script>
