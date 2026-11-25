@@ -7,7 +7,7 @@ using MYAcedemy_IdentityEmailProject.Entities;
 
 namespace MYAcedemy_IdentityEmailProject.Controllers
 {
-    //[Authorize]
+    [Authorize]
     public class MessageController : Controller
     {
         private readonly EmailContext _context;
@@ -24,6 +24,7 @@ namespace MYAcedemy_IdentityEmailProject.Controllers
             return View(values);
         }
 
+      //  [Authorize(Roles = "Admin")]
         public IActionResult CreateMessage()
         {
             ViewBag.Categories = new SelectList(_context.Categories.ToList(), "CategoryId", "CategoryName");

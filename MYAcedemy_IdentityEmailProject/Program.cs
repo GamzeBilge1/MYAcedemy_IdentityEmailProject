@@ -14,7 +14,7 @@ builder.Services.AddDbContext<EmailContext>();
 // Add services to the container.
 builder.Services.ConfigureApplicationCookie(options =>
 {
-    options.LoginPath = "/Login/SignIn";
+    options.LoginPath = "/ErrorPages/Page401";
     options.AccessDeniedPath = "/ErrorPages/Page403";
     options.ExpireTimeSpan = TimeSpan.FromDays(7);
 });
@@ -32,6 +32,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStatusCodePagesWithReExecute("/ErrorPages/Page{0}");
 app.UseRouting();
 
 app.UseAuthentication();
