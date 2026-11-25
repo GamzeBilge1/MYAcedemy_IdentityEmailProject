@@ -89,6 +89,9 @@ namespace MYAcedemy_IdentityEmailProject.Migrations
                     b.Property<int?>("ValidCode")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("ValidCodeExpiresAt")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("Id");
 
                     b.HasIndex("NormalizedEmail")

@@ -9,5 +9,6 @@ namespace MYAcedemy_IdentityEmailProject.Entities
         public string? Description { get; set; }
         public string? ImageUrl { get; set; }
         public int? ValidCode { get; set; }
+        public DateTime? ValidCodeExpiresAt { get; set; }
     }
 }

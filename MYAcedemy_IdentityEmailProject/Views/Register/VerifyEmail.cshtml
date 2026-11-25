@@ -1,0 +1,151 @@
+﻿@model MYAcedemy_IdentityEmailProject.Models.VerifyEmailViewModel
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>E-postanı doğrula | Mailora</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100dvh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            background: #f5f3fc;
+            color: #242039;
+            font-family: system-ui, sans-serif;
+        }
+
+        .verify-card {
+            width: min(100%, 420px);
+            padding: 32px 24px;
+            border-radius: 24px;
+            background: #fff;
+            box-shadow: 0 16px 48px #31245d14;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        p {
+            color: #625c72;
+            overflow-wrap: anywhere;
+        }
+
+        label {
+            display: block;
+            margin: 24px 0 8px;
+            font-weight: 600;
+        }
+
+        .code, button {
+            width: 100%;
+            min-height: 52px;
+            border-radius: 12px;
+        }
+
+        .code {
+            border: 1px solid #b8aecf;
+            text-align: center;
+            font: 600 1.5rem ui-monospace, monospace;
+            letter-spacing: .45em;
+            padding-left: calc(12px + .45em);
+            padding-right: 12px;
+        }
+
+            .code:focus-visible, button:focus-visible {
+                outline: 2px solid #6342be;
+                outline-offset: 3px;
+            }
+
+        button {
+            margin-top: 16px;
+            border: 0;
+            background: #6342be;
+            color: #fff;
+            font: inherit;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .error {
+            color: #b42318;
+            font-size: .875rem;
+        }
+
+        .resend-link {
+            width: auto;
+            min-height: 0;
+            margin-top: 4px;
+            padding: 4px;
+            background: transparent;
+            color: #6342be;
+            font-size: .875rem;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <main class="verify-card">
+        <h1>E-postanı doğrula</h1>
+        <p><strong>@Model.Email</strong> adresine 6 haneli bir kod gönderdik.</p>
+
+        <form asp-action="VerifyEmail" method="post">
+            <input asp-for="Email" type="hidden" />
+            <div asp-validation-summary="ModelOnly" class="error"></div>
+
+            <label asp-for="Code">Doğrulama kodu</label>
+            <input asp-for="Code" class="code" type="text"
+                   inputmode="numeric" autocomplete="one-time-code"
+                   maxlength="6" placeholder="000000" required />
+            <span asp-validation-for="Code" class="error"></span>
+
+            <button type="submit">Doğrula</button>
+        </form>
+        <p>
+            Kalan süre:
+            <strong id="countdown" data-seconds="@(Model.ValidCodeExpiresAt is DateTime expiresAt
+        ? Math.Max(0, Math.Ceiling((expiresAt - DateTime.UtcNow).TotalSeconds))
+        : 0)"></strong>
+        </p>
+
+        <form asp-action="ResendCode" method="post">
+            <button type="submit" id="resendCode" class="resend-link" hidden>Kodu yeniden gönder</button>
+        </form>
+
+        <script>
+            const countdown = document.getElementById("countdown");
+            const resendCode = document.getElementById("resendCode");
+            const endsAt = Date.now() + Number(countdown.dataset.seconds) * 1000;
+
+            function updateCountdown() {
+                const seconds = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
+                const minutes = String(Math.floor(seconds / 60)).padStart(2, "0");
+                const remaining = String(seconds % 60).padStart(2, "0");
+
+                countdown.textContent = `${minutes}:${remaining}`;
+                resendCode.hidden = seconds > 0;
+
+                if (seconds > 0) {
+                    setTimeout(updateCountdown, 250);
+                }
+            }
+
+            updateCountdown();
+        </script>
+    </main>
+</body>
+</html>
