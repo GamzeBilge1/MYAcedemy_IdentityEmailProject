@@ -6,6 +6,10 @@ using System;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddIdentity<AppUser, IdentityRole>().AddEntityFrameworkStores<EmailContext>().AddDefaultTokenProviders();
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.SignIn.RequireConfirmedEmail = true;
+});
 builder.Services.AddDbContext<EmailContext>();
 // Add services to the container.
 builder.Services.ConfigureApplicationCookie(options =>
