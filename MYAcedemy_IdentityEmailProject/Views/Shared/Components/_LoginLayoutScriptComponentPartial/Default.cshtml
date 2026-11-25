@@ -1,17 +1,20 @@
 ﻿<script>
-    const password = document.getElementById("Password");
-    const toggle = document.getElementById("togglePassword");
-    const icon = toggle.querySelector("i");
+    document.querySelectorAll("#togglePassword, [data-eye]").forEach(button => {
+        const input = document.getElementById(button.dataset.eye || "Password");
+        const icon = button.querySelector("i");
 
-    toggle.addEventListener("click", () => {
-        const showPassword = password.type === "password";
-        password.type = showPassword ? "text" : "password";
+        if (!input || !icon) return;
 
-        icon.classList.toggle("bi-eye", !showPassword);
-        icon.classList.toggle("bi-eye-slash", showPassword);
+        button.addEventListener("click", () => {
+            const show = input.type === "password";
+            input.type = show ? "text" : "password";
 
-        const label = showPassword ? "Şifreyi gizle" : "Şifreyi göster";
-        toggle.setAttribute("aria-label", label);
-        toggle.title = label;
+            icon.classList.toggle("bi-eye", !show);
+            icon.classList.toggle("bi-eye-slash", show);
+
+            const label = show ? "Şifreyi gizle" : "Şifreyi göster";
+            button.setAttribute("aria-label", label);
+            button.title = label;
+        });
     });
 </script>

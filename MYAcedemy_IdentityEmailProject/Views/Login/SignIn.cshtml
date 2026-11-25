@@ -35,10 +35,17 @@
                     <i class="bi bi-eye" aria-hidden="true"></i>
                 </button>
             </div>
-            <br />
+            <p class="forgot-password">
+                <a asp-controller="Login" asp-action="ForgotPassword">
+                    Şifremi unuttum
+                </a>
+            </p>      
             <button type="submit">Giriş Yap</button>
+            @if (TempData["PasswordResetSuccess"] is string message)
+            {
+                <p class="reset-notice" role="status">@message</p>
+            }
         </form>
-
         <p class="register">
             Hesabın yok mu?
             <a asp-controller="Register" asp-action="SignUp">Kayıt Ol</a>
