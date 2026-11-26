@@ -1,0 +1,20 @@
+﻿@model MYAcedemy_IdentityEmailProject.Entities.Message
+
+@{
+    ViewData["Title"] = "Mesaj detayı";
+    ViewData["ActiveMenu"] = "inbox";
+    Layout = "~/Views/MessageLayout/Index.cshtml";
+}
+
+<article class="panel p-4">
+    <a asp-action="Inbox" class="d-inline-block mb-3">← Gelen Kutusu’na dön</a>
+
+    <h1 class="h4 mb-3">@Model.Subject</h1>
+
+    <p class="mb-1"><strong>Gönderen:</strong> @Model.SenderEmail</p>
+    <p class="text-muted">@Model.SendDate.ToString("dd.MM.yyyy HH:mm")</p>
+
+    <hr />
+
+    <div style="white-space: pre-wrap; overflow-wrap: anywhere;">@Model.MessageDetail</div>
+</article>

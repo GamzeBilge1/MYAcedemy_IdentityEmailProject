@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using MYAcedemy_IdentityEmailProject.Context;
 using MYAcedemy_IdentityEmailProject.Entities;
 
@@ -18,13 +19,40 @@ namespace MYAcedemy_IdentityEmailProject.Controllers
             _userManager = userManager;
         }
 
-        public IActionResult Inbox()
+        public async Task<IActionResult> Inbox()
         {
-            var values = _context.Messages.ToList();
-            return View(values);
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+                return Challenge();
+
+            var email = user.Email;
+
+            var messages = await _context.Messages
+                .Where(message => message.ReceiverEmail == email)
+                .OrderByDescending(message => message.SendDate)
+                .ToListAsync();
+
+            return View(messages);
+        }
+        [HttpGet]
+        public async Task<IActionResult> Detail(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null || string.IsNullOrWhiteSpace(user.Email))
+                return Challenge();
+
+            var message = await _context.Messages.FirstOrDefaultAsync(m =>
+                m.MessageId == id && m.ReceiverEmail == user.Email);
+
+            if (message == null)
+                return NotFound();
+
+            return View(message);
         }
 
-      //  [Authorize(Roles = "Admin")]
+        //  [Authorize(Roles = "Admin")]
         public IActionResult CreateMessage()
         {
             ViewBag.Categories = new SelectList(_context.Categories.ToList(), "CategoryId", "CategoryName");
