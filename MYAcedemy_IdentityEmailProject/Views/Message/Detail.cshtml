@@ -1,20 +1,53 @@
 ﻿@model MYAcedemy_IdentityEmailProject.Entities.Message
 
 @{
-    ViewData["Title"] = "Mesaj detayı";
-    ViewData["ActiveMenu"] = "inbox";
+    ViewData["Title"] = Model.Subject;
+    var isSent = ViewData["IsSent"] is true;
+    ViewData["ActiveMenu"] = isSent ? "sent" : "inbox";
+    var sender = isSent ? Model.ReceiverEmail : Model.SenderEmail;
     Layout = "~/Views/MessageLayout/Index.cshtml";
+
+
+    var initial = string.IsNullOrWhiteSpace(sender)
+        ? "?"
+        : sender.Substring(0, 1).ToUpper();
 }
 
-<article class="panel p-4">
-    <a asp-action="Inbox" class="d-inline-block mb-3">← Gelen Kutusu’na dön</a>
+<section style="max-width: 960px;">
+    <a asp-controller="Message" asp-action="Inbox"
+       class="d-inline-flex align-items-center gap-2 mb-3"
+       style="color: var(--accent-dark);">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i>
+        Gelen Kutusu’na dön
+    </a>
 
-    <h1 class="h4 mb-3">@Model.Subject</h1>
+    <article class="panel p-3 p-md-4">
+        <header class="pb-3" style="border-bottom: 1px solid var(--border);">
+            <h1 class="h4 fw-bold mb-3 text-break">@Model.Subject</h1>
 
-    <p class="mb-1"><strong>Gönderen:</strong> @Model.SenderEmail</p>
-    <p class="text-muted">@Model.SendDate.ToString("dd.MM.yyyy HH:mm")</p>
+            <div class="d-flex flex-wrap align-items-center gap-3">
+                <span class="rounded-circle d-grid flex-shrink-0 fw-bold"
+                      style="width: 42px; height: 42px; place-items: center;
+                             background: var(--lavender); color: var(--accent-dark);"
+                      aria-hidden="true">
+                    @initial
+                </span>
 
-    <hr />
+                <div class="flex-grow-1 text-break">
+                    <div class="small" style="color: var(--muted);">Gönderen</div>
+                    <div class="fw-semibold">@sender</div>
+                </div>
 
-    <div style="white-space: pre-wrap; overflow-wrap: anywhere;">@Model.MessageDetail</div>
-</article>
+                <time class="small" style="color: var(--muted);"
+                      datetime="@Model.SendDate.ToString("s")">
+                    @Model.SendDate.ToString("dd.MM.yyyy HH:mm")
+                </time>
+            </div>
+        </header>
+
+        <div class="pt-4 pb-2"
+             style="white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.75;">
+            @Model.MessageDetail
+        </div>
+    </article>
+</section>

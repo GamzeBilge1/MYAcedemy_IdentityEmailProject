@@ -44,18 +44,19 @@ namespace MYAcedemy_IdentityEmailProject.Controllers
             return View(messages);
         }
         [HttpGet]
-        public async Task<IActionResult> Detail(int id)
+        public async Task<IActionResult> Detail(int id, bool sent = false)
         {
             var user = await _userManager.GetUserAsync(User);
 
             if (user == null || string.IsNullOrWhiteSpace(user.Email))
                 return Challenge();
 
-            var message = await _context.Messages.FirstOrDefaultAsync(m =>
-                m.MessageId == id && m.ReceiverEmail == user.Email);
+            var message = await _context.Messages.FirstOrDefaultAsync(m => m.MessageId == id &&(sent ? m.SenderEmail ==user.Email : m.ReceiverEmail == user.Email));
 
             if (message == null)
                 return NotFound();
+
+            ViewData["IsSent"] = sent; 
 
             return View(message);
         }

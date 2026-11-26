@@ -135,7 +135,8 @@
                          data-tag="@m.CategoryId"
                          data-starred="@(m.IsSenderFavorite ? "1" : "0")"
                          data-search="@search"
-                         tabindex="0">
+                         tabindex="0"
+                         data-href="@Url.Action("Detail", "Message", new { id = m.MessageId, sent = true })">
                     <div class="lead">
                         <input type="checkbox" class="m-check row-check" aria-label="Seç">
                         <button class="star-btn @(m.IsSenderFavorite ? "on" : "")" type="button" aria-label="Yıldızla">
@@ -332,10 +333,11 @@
                 });
             }
 
-            function openRow(r) {
-                state.selectedId = rowId(r);
-                render();
+                 function openRow(r) {
+            if (r.dataset.href) {
+                window.location.href = r.dataset.href;
             }
+        }
 
             /* --- Arama (liste + navbar senkron) --- */
             const search = $('#listSearch');
