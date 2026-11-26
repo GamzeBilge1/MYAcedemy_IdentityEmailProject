@@ -132,6 +132,8 @@ namespace MYAcedemy_IdentityEmailProject.Controllers
                 .OrderByDescending(x => x.SendDate)
                 .ToList();
 
+            ViewBag.Categories = await _context.Categories.OrderBy(c => c.CategoryName).ToListAsync();
+
             return View(values);
         }
         [HttpPost]
@@ -174,6 +176,26 @@ namespace MYAcedemy_IdentityEmailProject.Controllers
                 return NotFound();
 
             message.IsFavorite = starred;
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetSentFavorite(int id, bool starred)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null || string.IsNullOrWhiteSpace(user.Email))
+                return Challenge();
+
+            var message = await _context.Messages.FirstOrDefaultAsync(m =>
+                m.MessageId == id && m.SenderEmail == user.Email);
+
+            if (message == null)
+                return NotFound();
+
+            message.IsSenderFavorite = starred;
             await _context.SaveChangesAsync();
 
             return NoContent();

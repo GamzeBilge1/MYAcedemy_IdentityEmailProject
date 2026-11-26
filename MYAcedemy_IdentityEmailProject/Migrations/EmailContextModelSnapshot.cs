@@ -139,6 +139,9 @@ namespace MYAcedemy_IdentityEmailProject.Migrations
                     b.Property<bool>("IsRead")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsSenderFavorite")
+                        .HasColumnType("bit");
+
                     b.Property<string>("MessageDetail")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
