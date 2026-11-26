@@ -77,5 +77,49 @@ namespace MYAcedemy_IdentityEmailProject.Controllers
 
             return View(values);
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetReadStatus(int[] ids, bool isRead)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null || string.IsNullOrWhiteSpace(user.Email))
+                return Challenge();
+
+            var selectedIds = ids.Distinct().ToArray();
+
+            var messages = await _context.Messages
+                .Where(m => selectedIds.Contains(m.MessageId) && m.ReceiverEmail == user.Email)
+                .ToListAsync();
+
+            if (messages.Count != selectedIds.Length)
+                return NotFound();
+
+            foreach (var message in messages)
+                message.IsRead = isRead;
+
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetFavorite(int id, bool starred)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null || string.IsNullOrWhiteSpace(user.Email))
+                return Challenge();
+
+            var message = await _context.Messages.FirstOrDefaultAsync(m =>
+                m.MessageId == id && m.ReceiverEmail == user.Email);
+
+            if (message == null)
+                return NotFound();
+
+            message.IsFavorite = starred;
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
     }
 }

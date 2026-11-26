@@ -117,9 +117,9 @@
                          tabindex="0" title="Mesajı aç">
                     <div class="lead">
                         <input type="checkbox" class="m-check row-check" aria-label="Seç">
-                        @*    <button class="star-btn @(m.IsStarred ? "on" : "")" type="button" aria-label="Yıldızla">
-                            <i class="bi @(m.IsStarred ? "bi-star-fill" : "bi-star")"></i>
-                        </button> *@
+                           <button class="star-btn @(m.IsFavorite ? "on" : "")" type="button" aria-label="Yıldızla">
+                            <i class="bi @(m.IsFavorite ? "bi-star-fill" : "bi-star")"></i>
+                        </button>
                     </div>
                     <span class="avatar @AvatarColor(m.SenderEmail)">@Initials(m.SenderEmail)</span>
                     <div class="mi-sender">
@@ -184,9 +184,9 @@
                Boş bırakılırsa işlemler yalnızca arayüzde uygulanır.
                Gönderilen alanlar: star → id, starred | read/unread/delete → ids (çoklu) */
             const ENDPOINTS = {
-                star: '',   // ör. '/Inbox/ToggleStar'
-                read: '',   // ör. '/Inbox/MarkAsRead'
-                unread: '',   // ör. '/Inbox/MarkAsUnread'
+                star: '@Url.Action("SetFavorite", "Message")',
+                read: '@Url.Action("SetReadStatus", "Message", new { isRead = true })',
+                unread: '@Url.Action("SetReadStatus", "Message", new { isRead = false })',
                 delete: ''    // ör. '/Inbox/Delete'
             };
             const PER_PAGE = 10;
