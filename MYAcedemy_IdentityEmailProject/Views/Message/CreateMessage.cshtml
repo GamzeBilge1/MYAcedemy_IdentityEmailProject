@@ -1,4 +1,4 @@
-﻿@model MYAcedemy_IdentityEmailProject.Entities.Message
+﻿@model MYAcedemy_IdentityEmailProject.Models.CreateMessageViewModel
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Mvc.Rendering
 @{
@@ -86,7 +86,7 @@
     </div>
 
     @* Controller adınız farklıysa asp-controller ekleyin: asp-controller="Message" *@
-    <form class="cmp-card" id="cmpForm" asp-action="Create" method="post" novalidate autocomplete="off">
+    <form class="cmp-card" id="cmpForm" asp-action="CreateMessage" method="post" novalidate autocomplete="off">
 
         <!-- Alıcı, kategori & konu -->
         <div class="cmp-fields">
