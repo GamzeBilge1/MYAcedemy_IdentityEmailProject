@@ -33,6 +33,8 @@ namespace MYAcedemy_IdentityEmailProject.Controllers
                 .OrderByDescending(message => message.SendDate)
                 .ToListAsync();
 
+            ViewBag.Categories = await _context.Categories.OrderBy(category => category.CategoryName).ToListAsync();
+
             return View(messages);
         }
         [HttpGet]

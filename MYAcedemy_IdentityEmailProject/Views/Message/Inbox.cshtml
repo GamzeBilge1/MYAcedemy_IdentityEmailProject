@@ -83,6 +83,27 @@
                     <input type="text" id="listSearch" placeholder="Gönderen, konu veya içerik ara" autocomplete="off">
                     <button class="clear" id="listSearchClear" type="button" aria-label="Temizle"><i class="bi bi-x-circle-fill"></i></button>
                 </div>
+                <div class="dropdown">
+                    <button id="categoryFilterButton" type="button"
+                            class="category-filter-button dropdown-toggle"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                        Tüm kategoriler
+                    </button>
+
+                    <div id="categoryMenu" class="dropdown-menu category-menu"
+                         aria-labelledby="categoryFilterButton">
+                        <button type="button" class="dropdown-item" data-category="">
+                            Tüm kategoriler
+                        </button>
+
+                        @foreach (var category in ViewBag.Categories)
+                        {
+                            <button type="button" class="dropdown-item" data-category="@category.CategoryId">
+                                @category.CategoryName
+                            </button>
+                        }
+                    </div>
+                </div>
                 <div class="filter-chips" id="filterChips"></div>
             </div>
         </div>
@@ -95,6 +116,10 @@
             <button type="button" class="tool-btn" id="bulkRead" title="Okundu olarak işaretle" disabled><i class="bi bi-envelope-open"></i></button>
             <button type="button" class="tool-btn" id="bulkUnread" title="Okunmadı olarak işaretle" disabled><i class="bi bi-envelope"></i></button>
             <button type="button" class="tool-btn" id="bulkDelete" title="Sil" disabled><i class="bi bi-trash3"></i></button>
+            <button type="button" id="sortByDate" class="tool-btn"
+                    title="Tarih sırası: En yeni" aria-label="Tarih sırası: En yeni">
+                <i class="bi bi-arrow-down-up" aria-hidden="true"></i>
+            </button>
             <button type="button" class="tool-btn" id="refreshBtn" title="Yenile"><i class="bi bi-arrow-clockwise"></i></button>
         </div>
 
@@ -108,11 +133,11 @@
 
                 <article class="msg-item @(m.IsRead ? "" : "unread")"
                          data-id="@m.MessageId"
+                         data-sent-at="@m.SendDate.Ticks"
+                         data-tag="@m.CategoryId"
                          data-href="@detailUrl"
-                         data-unread="@(m.IsRead ? "0" : "1")"
-                @*    data-starred="@(m.IsStarred ? "1" : "0")"
-                         data-attach="@(m.AttachmentCount > 0 ? "1" : "0")"
-                         data-tag="@m.Label" *@
+                         data-unread="@(m.IsRead ? "0" : "1")"            
+                         data-starred="@(m.IsFavorite ? "1" : "0")"
                          data-search="@search"
                          tabindex="0" title="Mesajı aç">
                     <div class="lead">
@@ -292,9 +317,7 @@
                 let html = chips.map(([k, t]) =>
                     `<button type="button" class="chip ${state.filter === k ? 'active' : ''}" data-filter="${k}">${t} <span class="n">${c[k]}</span></button>`
                 ).join('');
-                if (state.label) {
-                    html += `<button type="button" class="chip active" data-clear-label="1"><i class="bi bi-tag-fill"></i> ${window.Mailora.escapeHtml(state.label)} <i class="bi bi-x"></i></button>`;
-                }
+              
                 $('#filterChips').innerHTML = html;
             }
 
@@ -397,19 +420,60 @@
                 state.query = value;
                 state.page = 1;
                 if (source !== 'list') search.value = value;
-                if (source !== 'global' && globalSearch) globalSearch.value = value;
+              
                 $('#listSearchWrap').classList.toggle('has-value', !!value);
                 render();
             }
 
             /* --- Olaylar --- */
+        const categoryButton = $('#categoryFilterButton');
+        const categoryOptions = [...document.querySelectorAll('#categoryMenu [data-category]')];
+
+        function selectCategory(option) {
+            state.label = option.dataset.category || null;
+            categoryButton.textContent = option.textContent.trim();
+
+            categoryOptions.forEach(item => {
+                item.classList.toggle('active', item === option);
+            });
+        }
+
+        selectCategory(categoryOptions.find(option =>
+            option.dataset.category === (state.label || '')) || categoryOptions[0]);
+
+        categoryOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                selectCategory(option);
+                state.page = 1;
+                render();
+            });
+        });
+                    let oldestFirst = false;
+
+        $('#sortByDate').addEventListener('click', event => {
+            oldestFirst = !oldestFirst;
+
+            const sortedRows = rows().sort((a, b) => {
+                const difference = Number(a.dataset.sentAt) - Number(b.dataset.sentAt);
+                return oldestFirst ? difference : -difference;
+            });
+
+            sortedRows.forEach(row => listEl.append(row));
+
+            const label = oldestFirst ? 'Tarih sırası: En eski' : 'Tarih sırası: En yeni';
+            event.currentTarget.title = label;
+            event.currentTarget.setAttribute('aria-label', label);
+
+            state.page = 1;
+            render();
+        });
             search.addEventListener('input', e => setQuery(e.target.value, 'list'));
             $('#listSearchClear').addEventListener('click', () => { setQuery('', 'clear'); search.focus(); });
 
             $('#filterChips').addEventListener('click', e => {
                 const chip = e.target.closest('[data-filter]');
                 if (chip) { state.filter = chip.dataset.filter; state.page = 1; render(); return; }
-                if (e.target.closest('[data-clear-label]')) { state.label = null; state.page = 1; render(); }
+               
             });
 
             $('#checkAll').addEventListener('change', e => {

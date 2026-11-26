@@ -5537,6 +5537,47 @@
                 left: 13px;
             }
         }
+
+        .category-filter-button {
+            padding: 8px 14px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            background: var(--lavender);
+            color: var(--accent-dark);
+            font: inherit;
+            cursor: pointer;
+        }
+
+            .category-filter-button:focus-visible {
+                outline: 2px solid var(--accent-dark);
+                outline-offset: 2px;
+            }
+
+        .category-menu {
+            padding: 4px;
+            border-color: var(--border);
+            border-radius: 14px;
+        }
+
+            .category-menu .dropdown-item {
+                border-radius: 10px;
+            }
+
+                .category-menu .dropdown-item:hover,
+                .category-menu .dropdown-item:focus {
+                    background: var(--lavender);
+                    color: var(--text);
+                }
+
+                .category-menu .dropdown-item.active,
+                .category-menu .dropdown-item:active {
+                    background: var(--accent-dark);
+                    color: #fff;
+                }
+
+        .msg-item[hidden] {
+            display: none;
+        }
     </style>
 </head>
 
