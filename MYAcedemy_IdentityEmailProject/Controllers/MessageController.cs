@@ -201,5 +201,23 @@ namespace MYAcedemy_IdentityEmailProject.Controllers
 
             return NoContent();
         }
+        [HttpGet]
+        public async Task<IActionResult> Starred()
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null || string.IsNullOrWhiteSpace(user.Email))
+                return Challenge();
+
+            var messages = await _context.Messages
+                .Where(m => (m.ReceiverEmail == user.Email && m.IsFavorite)
+                         || (m.SenderEmail == user.Email && m.IsSenderFavorite))
+                .OrderByDescending(m => m.SendDate)
+                .ToListAsync();
+
+            ViewData["UserEmail"] = user.Email;
+            ViewBag.Categories = await _context.Categories.OrderBy(c => c.CategoryName).ToListAsync();
+            return View(messages);
+        }
     }
 }
