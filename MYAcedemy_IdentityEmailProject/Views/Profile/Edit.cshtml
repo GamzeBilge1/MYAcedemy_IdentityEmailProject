@@ -1,0 +1,238 @@
+﻿@model MYAcedemy_IdentityEmailProject.Models.EditProfileViewModel
+
+@{
+    ViewData["Title"] = "Profilim";
+    ViewData["ActiveMenu"] = "profile";
+    Layout = "~/Views/MessageLayout/Index.cshtml";
+
+    var fullName = $"{Model.Name} {Model.SurName}".Trim();
+    var initials = string.Concat(fullName
+        .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+        .Take(2)
+        .Select(word => word[0]))
+        .ToUpper(System.Globalization.CultureInfo.GetCultureInfo("tr-TR"));
+
+    var photoUrl = string.IsNullOrWhiteSpace(Model.ImageUrl)
+        ? null
+        : Url.Content(Model.ImageUrl);
+}
+
+<style>
+    .profile-page {
+        width: 100%;
+        padding: clamp(16px, 3vw, 32px);
+    }
+
+        .profile-page .profile-card {
+            padding: clamp(20px, 3vw, 32px);
+            border: 1px solid var(--border, #e9e5f4);
+            border-radius: 20px;
+            background: #fff;
+        }
+
+        .profile-page .profile-photo-card {
+            background: linear-gradient(150deg, #f2edff, #fff 80%);
+            text-align: center;
+        }
+
+        .profile-page .profile-avatar {
+            display: grid;
+            place-items: center;
+            width: 108px;
+            height: 108px;
+            margin: 0 auto 18px;
+            overflow: hidden;
+            border: 4px solid #fff;
+            border-radius: 50%;
+            background: #e8dffd;
+            color: #59469f;
+            box-shadow: 0 6px 18px rgba(89, 70, 159, .15);
+        }
+
+            .profile-page .profile-avatar img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .profile-page .profile-avatar [hidden] {
+                display: none;
+            }
+
+        .profile-page .form-control {
+            min-height: 46px;
+            border-color: #e3deee;
+            border-radius: 12px;
+            background: #fcfbfe;
+        }
+
+            .profile-page .form-control:focus {
+                border-color: #8976ce;
+                box-shadow: 0 0 0 3px rgba(137, 118, 206, .16);
+            }
+
+            .profile-page .form-control[readonly] {
+                background: #f4f2f8;
+            }
+
+        .profile-page .profile-photo-button {
+            border: 1px solid #e3daf7;
+            background: #fff;
+            color: #59469f;
+        }
+
+            .profile-page .profile-photo-button:focus-within {
+                outline: 2px solid #6956b2;
+                outline-offset: 3px;
+            }
+
+        .profile-page .profile-save {
+            background: #6956b2;
+            color: #fff;
+        }
+
+            .profile-page .profile-save:hover,
+            .profile-page .profile-save:focus-visible {
+                background: #59469f;
+                color: #fff;
+            }
+
+        .profile-page .profile-divider {
+            border-top: 1px solid var(--border, #e9e5f4);
+        }
+</style>
+
+<section class="profile-page" aria-labelledby="profileTitle">
+    <h1 id="profileTitle" class="h3 fw-bold mb-4">Profilim</h1>
+
+    <form asp-controller="Profile" asp-action="Edit"
+          method="post" enctype="multipart/form-data">
+        <div class="row g-4 align-items-start">
+            <div class="col-lg-4 col-xl-3">
+                <div class="profile-card profile-photo-card">
+                    <div class="profile-avatar fs-3 fw-bold">
+                        <img id="profilePreview" src="@photoUrl" alt="Profil fotoğrafı"
+                             hidden="@(photoUrl == null)" />
+                        <span id="profileInitials" hidden="@(photoUrl != null)" aria-hidden="true">
+                            @(initials.Length > 0 ? initials : "?")
+                        </span>
+                    </div>
+
+                    @if (fullName.Length > 0)
+                    {
+                        <div class="h5 fw-bold mb-1 text-break">@fullName</div>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(Model.UserName))
+                    {
+                        <p class="small text-muted mb-0 text-break">@($"@{Model.UserName}")</p>
+                    }
+
+                    <div class="profile-divider mt-4 pt-3">
+                        <label asp-for="ProfilePhoto"
+                               class="btn profile-photo-button rounded-pill px-3 fw-semibold">
+                            <i class="bi bi-camera me-1" aria-hidden="true"></i>
+                            Fotoğraf seç
+                            <input asp-for="ProfilePhoto" type="file" class="visually-hidden"
+                                   accept="image/jpeg,image/png" aria-describedby="photoHelp" />
+                        </label>
+                        <p id="photoHelp" class="small text-muted mt-2 mb-0">
+                            JPG veya PNG · En fazla 2 MB
+                        </p>
+                        <span asp-validation-for="ProfilePhoto" class="d-block text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-8 col-xl-9">
+                <div class="profile-card">
+                    <h2 class="h5 fw-bold mb-4">Hesap bilgileri</h2>
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <label asp-for="Name" class="form-label fw-semibold">Ad</label>
+                            <input asp-for="Name" class="form-control" autocomplete="given-name" />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-sm-6">
+                            <label asp-for="SurName" class="form-label fw-semibold">Soyad</label>
+                            <input asp-for="SurName" class="form-control" autocomplete="family-name" />
+                            <span asp-validation-for="SurName" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="UserName" class="form-label fw-semibold">Kullanıcı adı</label>
+                            <input asp-for="UserName" class="form-control" autocomplete="username" />
+                            <span asp-validation-for="UserName" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="profile-divider mt-4 pt-4">
+                        <h2 class="h6 fw-bold mb-3">İletişim bilgileri</h2>
+
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <label asp-for="Email" class="form-label fw-semibold">E-posta adresi</label>
+                                <input asp-for="Email" type="email" class="form-control"
+                                       autocomplete="email" readonly aria-describedby="emailHelp" />
+                                <div id="emailHelp" class="small text-muted mt-1">
+                                    E-posta değişikliği için doğrulama gerekiyor.
+                                </div>
+                                <span asp-validation-for="Email" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-sm-6">
+                                <label asp-for="PhoneNumber" class="form-label fw-semibold">Telefon numarası</label>
+                                <input asp-for="PhoneNumber" type="tel" class="form-control" autocomplete="tel" />
+                                <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="profile-divider mt-4 pt-4">
+                        <label asp-for="Description" class="form-label fw-semibold">Hakkımda</label>
+                        <textarea asp-for="Description" class="form-control" rows="3" maxlength="250"></textarea>
+                        <span asp-validation-for="Description" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-flex justify-content-end mt-4">
+                        <button type="submit" class="btn profile-save rounded-pill px-4 fw-semibold">
+                            Değişiklikleri kaydet
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</section>
+
+<script>
+    (() => {
+        const input = document.getElementById('ProfilePhoto');
+        const preview = document.getElementById('profilePreview');
+        const initials = document.getElementById('profileInitials');
+        const savedPhoto = preview.getAttribute('src');
+        let previewUrl = null;
+
+        input.addEventListener('change', () => {
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+            }
+
+            const file = input.files[0];
+            previewUrl = file ? URL.createObjectURL(file) : null;
+            const photo = previewUrl || savedPhoto;
+
+            if (photo) {
+                preview.src = photo;
+            } else {
+                preview.removeAttribute('src');
+            }
+
+            preview.hidden = !photo;
+            initials.hidden = Boolean(photo);
+        });
+    })();
+</script>

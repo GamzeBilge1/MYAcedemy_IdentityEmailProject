@@ -78,6 +78,7 @@ namespace MYAcedemy_IdentityEmailProject.Controllers
             ViewBag.UserName = user.UserName;
             ViewBag.Email = user.Email;
             ViewBag.EmailConfirmed = user.EmailConfirmed;
+            ViewBag.ImageUrl = user.ImageUrl;
         }
     }
 }
