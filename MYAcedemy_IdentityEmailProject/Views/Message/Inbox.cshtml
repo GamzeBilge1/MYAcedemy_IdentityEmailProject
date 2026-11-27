@@ -333,7 +333,7 @@
                     starred: all.filter(r => isOn(r, 'starred')).length,
                     attach: all.filter(r => isOn(r, 'attach')).length
                 };
-                const chips = [['all', 'Tümü'], ['unread', 'Okunmamış'], ['starred', 'Yıldızlı'], ['attach', 'Ekli']];
+                const chips = [['all', 'Tümü'], ['unread', 'Okunmamış'], ['starred', 'Yıldızlı'], ];
                 let html = chips.map(([k, t]) =>
                     `<button type="button" class="chip ${state.filter === k ? 'active' : ''}" data-filter="${k}">${t} <span class="n">${c[k]}</span></button>`
                 ).join('');

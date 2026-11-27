@@ -38,7 +38,7 @@ namespace MYAcedemy_IdentityEmailProject.ViewComponents.MessageLayoutViewCompone
                     && m.IsSenderFavorite
                     && !m.IsTrashedBySender
                     && !m.IsDeletedBySender);
-
+            ViewBag.DraftCount = user == null ? 0 : await _context.MessageDrafts.CountAsync(d => d.OwnerId == user.Id);
             return View();
         }
     }

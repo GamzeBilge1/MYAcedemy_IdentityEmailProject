@@ -19,8 +19,14 @@
         <li><a class="side-link" data-page="dashboard" href="#dashboard" data-tip="Dashboard"><i class="bi bi-grid-1x2"></i> <span class="lbl">Dashboard</span></a></li>
         <li><a class="side-link" data-page="inbox" href="/Message/Inbox" data-tip="Gelen Kutusu"><i class="bi bi-inbox"></i> <span class="lbl">Gelen Kutusu</span> <span class="side-badge" id="badgeInbox"></span></a></li>
         <li><a class="side-link" data-page="sent" href="/Message/Sendbox" data-tip="Gönderilenler"><i class="bi bi-send"></i> <span class="lbl">Gönderilenler</span></a></li>
-        <li><a class="side-link" data-page="drafts" href="/Message/Drafts" data-tip="Taslaklar"><i class="bi bi-file-earmark-text"></i> <span class="lbl">Taslaklar</span> <span class="side-badge muted">3</span></a></li>
         <li>
+            <a class="side-link" data-page="drafts"
+               asp-controller="Message" asp-action="Drafts" data-tip="Taslaklar">
+                <i class="bi bi-file-earmark-text" aria-hidden="true"></i>
+                <span class="lbl">Taslaklar</span>
+                <span class="side-badge muted">@ViewBag.DraftCount</span>
+            </a>
+        </li>
             <a class="side-link" data-page="starred" href="/Message/Starred"
                data-tip="Yıldızlı Mesajlar">
                 <i class="bi bi-star"></i>
