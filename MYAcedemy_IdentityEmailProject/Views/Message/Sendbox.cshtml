@@ -114,7 +114,7 @@
             <span class="sel-info" id="selInfo">Tümünü seç</span>
             <span class="spacer"></span>
 
-            <button type="button" class="tool-btn" id="bulkDelete" title="Çöp Kutusu işlemi henüz bağlı değil" disabled><i class="bi bi-trash3"></i></button>
+            <button type="button" class="tool-btn" id="bulkDelete" title="Çöp Kutusuna taşı" disabled><i class="bi bi-trash3"></i></button>
             <button type="button" id="sortByDate" class="tool-btn"
                     title="Tarih sırası: En yeni" aria-label="Tarih sırası: En yeni">
                 <i class="bi bi-arrow-down-up" aria-hidden="true"></i>
@@ -179,6 +179,26 @@
     </div>
 
 </section>
+<dialog id="sentTrashDialog" aria-labelledby="sentTrashTitle"
+        style="border: 0; border-radius: 20px; padding: 24px; width: min(400px, 90vw);">
+    <h5 id="sentTrashTitle">Mesajlar çöp kutusuna taşınsın mı?</h5>
+
+    <form method="dialog" class="d-flex justify-content-end gap-2">
+        <button type="submit" class="btn btn-light rounded-pill" autofocus>
+            Vazgeç
+        </button>
+        <button type="button" id="confirmSentTrash" class="btn rounded-pill text-white"
+                style="background: #7767c5;">
+            Çöp kutusuna taşı
+        </button>
+    </form>
+</dialog>
+
+<style>
+    #sentTrashDialog::backdrop {
+        background: rgba(37, 32, 61, 0.45);
+    }
+</style>
 
 @section Scripts {
     <script>
@@ -303,6 +323,7 @@
                 const ids = pageRows().map(rowId);
                 const onPage = ids.filter(id => state.checked.has(id)).length;
                 const n = state.checked.size;
+                $('#bulkDelete').disabled = n === 0;
                 const all = $('#checkAll');
                 all.checked = ids.length > 0 && onPage === ids.length;
                 all.indeterminate = onPage > 0 && onPage < ids.length;
@@ -407,7 +428,28 @@
                 pageRows().forEach(r => e.target.checked ? state.checked.add(rowId(r)) : state.checked.delete(rowId(r)));
                 render();
             });
+                    const sentTrashDialog = $('#sentTrashDialog');
+        const confirmSentTrash = $('#confirmSentTrash');
 
+        $('#bulkDelete').addEventListener('click', () => {
+            sentTrashDialog.showModal();
+        });
+
+        confirmSentTrash.addEventListener('click', async () => {
+            confirmSentTrash.disabled = true;
+
+            try {
+                await post('@Url.Action("MoveSentToTrash", "Message")', {
+                    ids: [...state.checked]
+                });
+
+                location.reload();
+            } catch {
+                sentTrashDialog.close();
+                confirmSentTrash.disabled = false;
+                showToast('Mesajlar çöp kutusuna taşınamadı.', 'bi-exclamation-circle');
+            }
+        });
             $('#refreshBtn').addEventListener('click', e => {
                 const ic = $('i', e.currentTarget);
                 ic.style.transition = 'transform .6s';

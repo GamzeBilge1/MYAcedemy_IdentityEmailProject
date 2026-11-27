@@ -85,9 +85,25 @@
         </div>
     </div>
 
+    @if (TempData["DraftSaved"] is string message)
+    {
+        <div id="draftSavedAlert" class=" alert alert-success" role="status">
+            @message
+        </div>
+
+        <script>
+            setTimeout(() => {
+                document.getElementById('draftSavedAlert')?.remove();
+            }, 3000);
+        </script>
+    }
+
     @* Controller adınız farklıysa asp-controller ekleyin: asp-controller="Message" *@
     <form class="cmp-card" id="cmpForm" asp-action="CreateMessage" method="post" novalidate autocomplete="off">
-
+        @if (ViewBag.DraftId != null)
+        {
+            <input type="hidden" name="draftId" value="@ViewBag.DraftId" />
+        }
         <!-- Alıcı, kategori & konu -->
         <div class="cmp-fields">
             <div class="cmp-row">
@@ -197,6 +213,10 @@
         <!-- Alt işlem çubuğu -->
         <div class="cmp-actions">
             <button type="submit" class="btn-send" id="cmpSend"><span class="lbl"><i class="bi bi-send-fill"></i> Mesajı Gönder</span></button>
+            <button type="submit" id="cmpSaveDraft" class="btn btn-outline-secondary"
+                    asp-controller="Message" asp-action="SaveDraft" formnovalidate>
+                Taslak olarak kaydet
+            </button>
             <button type="button" class="btn-soft danger" id="cmpClear"><i class="bi bi-x-circle"></i> Temizle</button>
             <span class="cmp-hint"><span class="kbd-s">Ctrl</span> + <span class="kbd-s">Enter</span> ile gönder</span>
         </div>
@@ -399,6 +419,11 @@
                 closePops();
                 to.value = to.value.trim();
                 syncContent();
+                        if (e.submitter?.id === 'cmpSaveDraft') {
+            content.value = editor.innerHTML;
+              dirty = false;
+            return;
+        }
                 if (sending) { e.preventDefault(); return; }
                 if (!validate()) { e.preventDefault(); showToast('Lütfen işaretli alanları kontrol edin.', 'bi-exclamation-circle'); return; }
 

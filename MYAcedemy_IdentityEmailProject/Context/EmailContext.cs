@@ -14,5 +14,6 @@ namespace MYAcedemy_IdentityEmailProject.Context
 
         public DbSet<Message> Messages { get; set; }
         public DbSet<Category> Categories { get; set; }
+        public DbSet<MessageDraft> MessageDrafts { get; set; }
     }
 }

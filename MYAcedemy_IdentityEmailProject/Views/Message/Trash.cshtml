@@ -1,0 +1,268 @@
+﻿@model List<MYAcedemy_IdentityEmailProject.Entities.Message>
+@using System.Globalization
+@using System.Net
+@using System.Text.RegularExpressions
+
+@{
+    ViewData["Title"] = "Çöp Kutusu";
+    ViewData["ActiveMenu"] = "trash";
+    Layout = "~/Views/MessageLayout/Index.cshtml";
+
+    const int pageSize = 10;
+    var initialPageCount = Math.Max(1, (Model.Count + pageSize - 1) / pageSize);
+    var rowIndex = 0;
+    var culture = CultureInfo.GetCultureInfo("tr-TR");
+    var avatarColors = new[] { "av-lav", "av-blue", "av-mint", "av-rose", "av-peach" };
+}
+
+<section id="trashMailbox" class="inbox" aria-labelledby="trashTitle">
+    <div class="panel list-panel">
+        <header class="list-head">
+            <div class="list-title">
+                <div>
+                    <h1 id="trashTitle">Çöp Kutusu</h1>
+                    <div class="sub">@Model.Count mesaj</div>
+                </div>
+            </div>
+            <div class="list-tools">
+                <div class="list-search" id="trashSearchWrap">
+                    <i class="bi bi-search" aria-hidden="true"></i>
+                    <input id="trashSearch" type="text" placeholder="Gönderen, alıcı, konu veya içerik ara"
+                           aria-label="Çöp Kutusu’nda ara" autocomplete="off" inputmode="search" />
+                    <button class="clear" id="trashSearchClear" type="button" aria-label="Aramayı temizle">
+                        <i class="bi bi-x-circle-fill" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <form id="trashActions" asp-controller="Message" asp-action="DeleteTrashMessages" method="post"></form>
+        <div class="bulk-bar">
+            <input type="checkbox" class="m-check" id="trashCheckAll" aria-label="Görünen mesajların tümünü seç" />
+            <span class="sel-info" id="trashSelection">Tümünü seç</span>
+            <span class="spacer"></span>
+            <button type="submit" class="tool-btn" id="restoreTrash" form="trashActions"
+                    asp-controller="Message" asp-action="RestoreTrashMessages" formmethod="post" disabled
+                    title="Geri al" aria-label="Geri al">
+                <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="tool-btn" id="deleteTrash" disabled title="Sil" aria-label="Sil">
+                <i class="bi bi-trash3" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="tool-btn" id="sortTrash"
+                    title="Tarih sırası: En yeni" aria-label="Tarih sırası: En yeni">
+                <i class="bi bi-arrow-down-up" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <div class="msg-list" id="trashRows">
+            @foreach (var trash in Model.OrderByDescending(d => d.SendDate).ThenByDescending(d => d.MessageId))
+            {
+                var sender = string.IsNullOrWhiteSpace(trash.SenderEmail) ? "Gönderen belirtilmedi" : trash.SenderEmail;
+                var subject = string.IsNullOrWhiteSpace(trash.Subject) ? "Konusuz" : trash.Subject;
+                var text = WebUtility.HtmlDecode(Regex.Replace(trash.MessageDetail ?? "", "<[^>]+>", " "));
+                var preview = Regex.Replace(text, @"\s+", " ").Trim();
+                var sendDate = trash.SendDate;
+
+                <article class="msg-item" hidden="@(rowIndex++ >= pageSize)" data-search="@($"{sender} {trash.ReceiverEmail} {subject} {preview}".ToLower(culture))">
+                    <div class="lead">
+                        <input type="checkbox" class="m-check row-check" name="ids" form="trashActions"
+                               value="@trash.MessageId" aria-label="@($"{subject} mesajını seç")" />
+                    </div>
+                    <span class="avatar @(avatarColors[trash.MessageId % avatarColors.Length])" aria-hidden="true">
+                        @(string.IsNullOrWhiteSpace(trash.SenderEmail) ? "?" : sender.Substring(0, 1).ToUpper(culture))
+                    </span>
+                    <div class="mi-sender"><span class="sender">@sender</span></div>
+                    <div class="mi-main">
+                        <span class="subject">@subject</span>
+                        @if (preview.Length > 0)
+                        {
+                            <span class="snippet">@(preview.Length > 140 ? preview.Substring(0, 140) + "…" : preview)</span>
+                        }
+                    </div>
+                    <span class="time" title="@sendDate.ToString("dd.MM.yyyy HH:mm", culture)">
+                        @sendDate.ToString("d MMM", culture)
+                    </span>
+                </article>
+            }
+            <div id="trashEmpty" class="empty-list p-3 text-center" hidden="@(Model.Count > 0)">
+                @(Model.Count == 0 ? "Çöp Kutusu boş." : "Aramanıza uygun mesaj bulunamadı.")
+            </div>
+
+        </div>
+
+        <div class="list-foot">
+            <span class="range" id="trashCount">@(Model.Count == 0 ? 0 : 1)–@Math.Min(pageSize, Model.Count) / @Model.Count mesaj</span>
+            <div class="pager" id="trashPager" aria-label="Çöp Kutusu sayfaları">
+                <button type="button" disabled aria-label="Önceki"><i class="bi bi-chevron-left"></i></button>
+                @for (var index = 1; index <= initialPageCount; index++)
+                {
+                    <button type="button" class="@(index == 1 ? "active" : "")" aria-current="@(index == 1 ? "page" : null)">@index</button>
+                }
+                <button type="button" disabled="@(initialPageCount == 1)" aria-label="Sonraki"><i class="bi bi-chevron-right"></i></button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<dialog id="trashDeleteDialog" aria-labelledby="trashDeleteTitle"
+        style="border: 0; border-radius: 20px; padding: 24px; width: min(400px, 90vw);">
+    <h5 id="trashDeleteTitle">Seçili mesajlar silinsin mi?</h5>
+    <p>Silinen mesajı geri alamazsın.</p>
+    <div class="d-flex justify-content-end gap-2">
+        <button type="button" id="cancelTrashDelete" class="btn btn-light rounded-pill" autofocus>Vazgeç</button>
+        <button type="submit" form="trashActions" class="btn rounded-pill text-white"
+                style="background: #7767c5;">
+            Sil
+        </button>
+    </div>
+</dialog>
+
+<style>
+    #trashMailbox [hidden] {
+        display: none !important;
+    }
+
+    #trashDeleteDialog::backdrop {
+        background: rgba(37, 32, 61, 0.45);
+    }
+</style>
+
+@section Scripts {
+    <script>
+        (() => {
+            const list = document.getElementById('trashRows');
+            const search = document.getElementById('trashSearch');
+            const sortButton = document.getElementById('sortTrash');
+            const empty = document.getElementById('trashEmpty');
+            const pager = document.getElementById('trashPager');
+            const searchWrap = document.getElementById('trashSearchWrap');
+            const pageSize = @pageSize;
+            const deleteDialog = document.getElementById('trashDeleteDialog');
+            const checkAll = document.getElementById('trashCheckAll');
+            const restoreButton = document.getElementById('restoreTrash');
+            const deleteButton = document.getElementById('deleteTrash');
+            let page = 1;
+            let oldestFirst = false;
+
+            const rows = () => [...list.querySelectorAll('.msg-item')];
+            const visibleChecks = () => rows().filter(row => !row.hidden)
+                .map(row => row.querySelector('.row-check'));
+
+            function updateSelection() {
+                const checks = visibleChecks();
+                const count = checks.filter(check => check.checked).length;
+                checkAll.disabled = checks.length === 0;
+                checkAll.checked = checks.length > 0 && count === checks.length;
+                checkAll.indeterminate = count > 0 && count < checks.length;
+                restoreButton.disabled = count === 0;
+                deleteButton.disabled = count === 0;
+                document.getElementById('trashSelection').textContent =
+                    count ? count + ' mesaj seçildi' : 'Tümünü seç';
+            }
+
+            function renderPager(pageCount) {
+                pager.replaceChildren();
+
+                function addPageButton(label, target, disabled, current = false, icon = '') {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    if (icon) {
+                        const arrow = document.createElement('i');
+                        arrow.className = 'bi ' + icon;
+                        arrow.setAttribute('aria-hidden', 'true');
+                        button.append(arrow);
+                        button.setAttribute('aria-label', label);
+                    } else {
+                        button.textContent = label;
+                    }
+                    button.disabled = disabled;
+                    if (current) {
+                        button.classList.add('active');
+                        button.setAttribute('aria-current', 'page');
+                    }
+                    button.addEventListener('click', () => {
+                        page = target;
+                        renderTrash();
+                    });
+                    pager.append(button);
+                }
+
+                addPageButton('Önceki', page - 1, page === 1, false, 'bi-chevron-left');
+                for (let index = 1; index <= pageCount; index++) {
+                    addPageButton(String(index), index, false, index === page);
+                }
+                addPageButton('Sonraki', page + 1, page === pageCount, false, 'bi-chevron-right');
+            }
+
+            function renderTrash() {
+                const query = search.value.trim().toLocaleLowerCase('tr-TR');
+                const matches = rows().filter(row => row.dataset.search.includes(query));
+                const pageCount = Math.max(1, Math.ceil(matches.length / pageSize));
+                page = Math.min(page, pageCount);
+
+                const start = (page - 1) * pageSize;
+                const visible = new Set(matches.slice(start, start + pageSize));
+
+                for (const row of rows()) {
+                    row.hidden = !visible.has(row);
+                    if (row.hidden) row.querySelector('.row-check').checked = false;
+                }
+
+                empty.hidden = matches.length > 0;
+                searchWrap.classList.toggle('has-value', Boolean(search.value));
+                const first = matches.length ? start + 1 : 0;
+                const last = Math.min(start + pageSize, matches.length);
+                document.getElementById('trashCount').textContent =
+                    first + '–' + last + ' / ' + matches.length + ' mesaj';
+
+                renderPager(pageCount);
+                updateSelection();
+            }
+
+            search.addEventListener('input', () => {
+                page = 1;
+                renderTrash();
+            });
+            document.getElementById('trashSearchClear').addEventListener('click', () => {
+                search.value = '';
+                page = 1;
+                renderTrash();
+                search.focus();
+            });
+
+            checkAll.addEventListener('change', () => {
+                visibleChecks().forEach(check => { check.checked = checkAll.checked; });
+                updateSelection();
+            });
+
+            list.addEventListener('change', updateSelection);
+            deleteButton.addEventListener('click', () => deleteDialog.showModal());
+
+            document.getElementById('cancelTrashDelete').addEventListener('click', () => {
+                deleteDialog.close();
+            });
+
+            if (window.Mailora) {
+                window.Mailora.onSearch = value => {
+                    search.value = value;
+                    page = 1;
+                    renderTrash();
+                };
+            }
+
+            sortButton.addEventListener('click', () => {
+                oldestFirst = !oldestFirst;
+                rows().reverse().forEach(row => list.insertBefore(row, empty));
+                const label = oldestFirst ? 'Tarih sırası: En eski' : 'Tarih sırası: En yeni';
+                sortButton.title = label;
+                sortButton.setAttribute('aria-label', label);
+                page = 1;
+                renderTrash();
+            });
+
+            renderTrash();
+        })();
+    </script>
+}
+

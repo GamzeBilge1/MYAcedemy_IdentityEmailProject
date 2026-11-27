@@ -24,14 +24,20 @@ namespace MYAcedemy_IdentityEmailProject.ViewComponents.MessageLayoutViewCompone
             var email = user?.Email;
 
             ViewBag.InboxStarredCount = string.IsNullOrWhiteSpace(email)
-                ? 0
-                : await _context.Messages.CountAsync(m =>
-                    m.ReceiverEmail == email && m.IsFavorite);
+       ? 0
+       : await _context.Messages.CountAsync(m =>
+           m.ReceiverEmail == email
+           && m.IsFavorite
+           && !m.IsTrashedByReceiver
+           && !m.IsDeletedByReceiver);
 
             ViewBag.SentStarredCount = string.IsNullOrWhiteSpace(email)
                 ? 0
                 : await _context.Messages.CountAsync(m =>
-                    m.SenderEmail == email && m.IsSenderFavorite);
+                    m.SenderEmail == email
+                    && m.IsSenderFavorite
+                    && !m.IsTrashedBySender
+                    && !m.IsDeletedBySender);
 
             return View();
         }

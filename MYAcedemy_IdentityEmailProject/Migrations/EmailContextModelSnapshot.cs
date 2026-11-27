@@ -133,6 +133,12 @@ namespace MYAcedemy_IdentityEmailProject.Migrations
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsDeletedByReceiver")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeletedBySender")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsFavorite")
                         .HasColumnType("bit");
 
@@ -140,6 +146,12 @@ namespace MYAcedemy_IdentityEmailProject.Migrations
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsSenderFavorite")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsTrashedByReceiver")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsTrashedBySender")
                         .HasColumnType("bit");
 
                     b.Property<string>("MessageDetail")
@@ -166,6 +178,38 @@ namespace MYAcedemy_IdentityEmailProject.Migrations
                     b.HasIndex("CategoryId");
 
                     b.ToTable("Messages");
+                });
+
+            modelBuilder.Entity("MYAcedemy_IdentityEmailProject.Entities.MessageDraft", b =>
+                {
+                    b.Property<int>("MessageDraftId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MessageDraftId"));
+
+                    b.Property<int?>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("MessageDetail")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OwnerId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReceiverEmail")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Subject")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("MessageDraftId");
+
+                    b.ToTable("MessageDrafts");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

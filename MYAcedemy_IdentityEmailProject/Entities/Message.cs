@@ -13,5 +13,10 @@
         public int CategoryId { get; set; }
         public Category Category { get; set; }
         public bool IsSenderFavorite { get; set; }
+        public bool IsTrashedByReceiver { get; set; }
+        public bool IsTrashedBySender { get; set; }
+
+        public bool IsDeletedByReceiver { get; set; }
+        public bool IsDeletedBySender { get; set; }
     }
 }
