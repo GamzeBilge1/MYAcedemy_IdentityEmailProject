@@ -1,0 +1,431 @@
+﻿@model MYAcedemy_IdentityEmailProject.Models.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard";
+    ViewData["ActiveMenu"] = "dashboard";
+    Layout = "~/Views/MessageLayout/Index.cshtml";
+
+    var email = ViewData["UserEmail"] as string;
+    var readCount = Math.Max(0, Model.InboxCount - Model.UnreadCount);
+    var categoryTotal = Model.CategorySummaries.Sum(category => category.MessageCount);
+
+    var metrics = new[]
+    {
+        (Tone: "sky", Label: "Gelen Kutusu", Count: Model.InboxCount, Icon: "bi-inbox", Action: "Inbox"),
+        (Tone: "violet", Label: "Gönderilenler", Count: Model.SentCount, Icon: "bi-send", Action: "Sendbox"),
+        (Tone: "mint", Label: "Okundu", Count: readCount, Icon: "bi-envelope-open", Action: "Inbox"),
+        (Tone: "amber", Label: "Okunmamış", Count: Model.UnreadCount, Icon: "bi-envelope", Action: "Inbox"),
+        (Tone: "rose", Label: "Yıldızlı", Count: Model.StarredCount, Icon: "bi-star", Action: "Starred"),
+        (Tone: "indigo", Label: "Taslaklar", Count: Model.DraftCount, Icon: "bi-file-earmark-text", Action: "Drafts")
+    };
+
+    var culture = System.Globalization.CultureInfo.GetCultureInfo("tr-TR");
+    var activityMax = Math.Max(1, Model.DailyActivity.Select(day => day.MessageCount).DefaultIfEmpty().Max());
+    var waiting = new[]
+    {
+        (Label: "Bugün", Count: Model.UnreadTodayCount, Tone: "mint"),
+        (Label: "1–3 gün önce", Count: Model.UnreadOneToThreeDaysCount, Tone: "amber"),
+        (Label: "4 gün ve üzeri", Count: Model.UnreadFourDaysOrMoreCount, Tone: "rose")
+    };
+    var categoryTones = new[] { "sky", "mint", "amber", "rose", "indigo" };
+    var waitingTotal = Math.Max(1, waiting.Sum(item => item.Count));
+
+    var tabs = new[]
+    {
+        (Value: "all", Label: "Tümü"),
+        (Value: "inbox", Label: "Gelen"),
+        (Value: "sent", Label: "Gönderilen")
+    };
+}
+
+<style>
+    .mail-dashboard {
+        --dash-accent: #6956b2;
+        --dash-tint: #f0ebfc;
+        --dash-border: #e9e4f3;
+        --dash-muted: #6c6980;
+        padding-block: 16px 28px;
+    }
+
+        .mail-dashboard .dash-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 145px), 1fr));
+            gap: 12px;
+        }
+
+        .mail-dashboard .dash-card {
+            border: 1px solid var(--dash-border);
+            border-radius: 16px;
+            background: #fff;
+        }
+
+        .mail-dashboard .dash-metric {
+            display: block;
+            padding: 16px;
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .mail-dashboard a.dash-metric:hover,
+        .mail-dashboard .dash-highlight {
+            background: var(--dash-tint);
+            border-color: #dbd1f3;
+        }
+
+        .mail-dashboard a:focus-visible {
+            outline: 2px solid var(--dash-accent);
+            outline-offset: 3px;
+        }
+
+        .mail-dashboard .dash-icon {
+            display: inline-grid;
+            width: 36px;
+            height: 36px;
+            place-items: center;
+            flex-shrink: 0;
+            border-radius: 10px;
+            color: var(--dash-accent);
+            background: var(--dash-tint);
+        }
+
+        .mail-dashboard .dash-muted {
+            color: var(--dash-muted);
+        }
+
+        .mail-dashboard .dash-tab {
+            border-radius: 50rem;
+            color: var(--dash-accent);
+        }
+
+            .mail-dashboard .dash-tab.active {
+                background: var(--dash-tint);
+                color: var(--dash-accent);
+                font-weight: 700;
+            }
+
+        .mail-dashboard .dash-message {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            color: inherit;
+            text-decoration: none;
+        }
+
+            .mail-dashboard .dash-message + .dash-message {
+                border-top: 1px solid var(--dash-border);
+            }
+
+            .mail-dashboard .dash-message:hover {
+                background: #faf8fe;
+            }
+
+        .mail-dashboard .dash-message-info {
+            flex: 1 1 9rem;
+            min-width: 0;
+        }
+
+        .mail-dashboard .dash-unread {
+            color: var(--dash-accent);
+            font-weight: 600;
+        }
+
+        .mail-dashboard .dash-progress {
+            height: 8px;
+            overflow: hidden;
+            border-radius: 50rem;
+            background: #f0edf7;
+        }
+
+            .mail-dashboard .dash-progress > span {
+                display: block;
+                height: 100%;
+                border-radius: inherit;
+                background: #8975cf;
+            }
+
+        .mail-dashboard [data-tone="sky"] {
+            --tone: #176395;
+            --tint: #e1f1ff;
+            --fill: #4d9bd1;
+        }
+
+        .mail-dashboard [data-tone="violet"] {
+            --tone: #674b9c;
+            --tint: #efe6ff;
+            --fill: #9876d2;
+        }
+
+        .mail-dashboard [data-tone="mint"] {
+            --tone: #16664c;
+            --tint: #dff5ed;
+            --fill: #319877;
+        }
+
+        .mail-dashboard [data-tone="amber"] {
+            --tone: #844a14;
+            --tint: #fff0dc;
+            --fill: #c77a2f;
+        }
+
+        .mail-dashboard [data-tone="rose"] {
+            --tone: #a13a5a;
+            --tint: #fce7ee;
+            --fill: #ce6486;
+        }
+
+        .mail-dashboard [data-tone="indigo"] {
+            --tone: #3f52a2;
+            --tint: #e9ecff;
+            --fill: #667bd1;
+        }
+
+        .mail-dashboard .dash-metric {
+            background: linear-gradient(145deg, var(--tint), #fff 80%);
+        }
+
+            .mail-dashboard .dash-metric .dash-icon {
+                background: var(--tint);
+                color: var(--tone);
+            }
+
+        .mail-dashboard a.dash-metric:hover {
+            background: var(--tint);
+        }
+
+        .mail-dashboard .dash-progress > span {
+            background: var(--fill, #4d9bd1);
+        }
+
+        .mail-dashboard .heat-days {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 6px;
+            max-width: 23rem;
+        }
+
+        .mail-dashboard .heat-day {
+            display: grid;
+            place-items: center;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            background: #edf2f4;
+            color: #465264;
+            font-size: .75rem;
+            font-variant-numeric: tabular-nums;
+        }
+
+            .mail-dashboard .heat-day[data-level="1"] {
+                background: #ccefe9;
+                color: #17493e;
+            }
+
+            .mail-dashboard .heat-day[data-level="2"] {
+                background: #82d3c7;
+                color: #133c36;
+            }
+
+            .mail-dashboard .heat-day[data-level="3"] {
+                background: #398c82;
+                color: #fff;
+            }
+
+            .mail-dashboard .heat-day[data-level="4"] {
+                background: #17665e;
+                color: #fff;
+            }
+
+            .mail-dashboard .heat-day:focus-visible {
+                outline: 2px solid #17665e;
+                outline-offset: 2px;
+            }
+</style>
+
+<section class="mail-dashboard" aria-labelledby="dashboard-title">
+    <h1 id="dashboard-title" class="h3 fw-bold mb-4">Dashboard</h1>
+
+    <div class="dash-metrics mb-4">
+        @foreach (var metric in metrics)
+        {
+            var isUnread = metric.Label == "Okunmamış";
+
+            if (metric.Label == "Okundu")
+            {
+                <div class="dash-card dash-metric" data-tone="@metric.Tone">
+                    <span class="dash-icon mb-2" aria-hidden="true">
+                        <i class="bi @metric.Icon"></i>
+                    </span>
+                    <strong class="d-block fs-3">@metric.Count</strong>
+                    <span class="d-block small dash-muted">@metric.Label</span>
+                </div>
+            }
+            else
+            {
+                <a asp-controller="Message" asp-action="@metric.Action"
+                   asp-route-filter="@(isUnread ? "unread" : null)"
+                   class="dash-card dash-metric @(isUnread ? "dash-highlight" : "")" data-tone="@metric.Tone">
+                    <span class="dash-icon mb-2" aria-hidden="true">
+                        <i class="bi @metric.Icon"></i>
+                    </span>
+                    <strong class="d-block fs-3">@metric.Count</strong>
+                    <span class="d-block small dash-muted">@metric.Label</span>
+                </a>
+            }
+        }
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-lg-6">
+            <section class="dash-card h-100 p-3 p-md-4" aria-labelledby="activity-title">
+                <h2 id="activity-title" class="h5 fw-bold mb-1">Mesaj Yoğunluğu</h2>
+                <p class="small dash-muted mb-3">Son 28 gün · Gelen ve gönderilen mesajlar</p>
+                @if (Model.DailyActivity.Count == 0)
+                {
+                    <p class="small dash-muted mb-0">Günlük mesaj verisi yok.</p>
+                }
+                else
+                {
+                    <ul class="heat-days list-unstyled mb-0" aria-label="Günlük mesaj sayıları">
+                        @foreach (var day in Model.DailyActivity)
+                        {
+                            var level = (int)Math.Ceiling(4.0 * day.MessageCount / activityMax);
+                            var description = $"{day.Date.ToString("d MMMM yyyy, dddd", culture)}: {day.MessageCount} mesaj";
+
+                            <li class="heat-day" data-level="@level" title="@description" tabindex="0">
+                                <span aria-hidden="true">@day.Date.Day</span>
+                                <span class="visually-hidden">@description</span>
+                            </li>
+                        }
+                    </ul>
+                    <p class="small dash-muted mt-3 mb-0">Koyu kareler daha yoğun günleri gösterir.</p>
+                }
+            </section>
+        </div>
+
+        <div class="col-12 col-lg-6">
+            <section class="dash-card h-100 p-3 p-md-4" aria-labelledby="waiting-title">
+                <h2 id="waiting-title" class="h5 fw-bold mb-3">Okunmamış Mesajların Bekleme Süresi</h2>
+                <ul class="list-unstyled d-grid gap-3 mb-0">
+                    @foreach (var item in waiting)
+                    {
+                        var width = (100.0 * item.Count / waitingTotal)
+                        .ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+
+                        <li data-tone="@item.Tone">
+                            <div class="d-flex justify-content-between gap-2 small mb-2">
+                                <span>@item.Label</span>
+                                <strong>@item.Count</strong>
+                            </div>
+                            <div class="dash-progress" aria-hidden="true">
+                                <span style="width: @(width)%"></span>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            </section>
+        </div>
+    </div>
+
+    <div class="row g-4 align-items-start">
+        <div class="col-12 col-lg-7">
+            <section class="dash-card p-3 p-md-4" aria-labelledby="recent-title">
+                <header class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                    <h2 id="recent-title" class="h5 fw-bold mb-0">Son Mesajlar</h2>
+
+                    <nav class="d-flex flex-wrap gap-1" aria-label="Son mesajları filtrele">
+                        @foreach (var tab in tabs)
+                        {
+                            var active = Model.SelectedTab == tab.Value;
+
+                            <a asp-controller="Dashboard" asp-action="Index"
+                               asp-route-tab="@tab.Value"
+                               class="btn btn-sm dash-tab @(active ? "active" : "")"
+                               aria-current="@(active ? "page" : null)">
+                                @tab.Label
+                            </a>
+                        }
+                    </nav>
+                </header>
+
+                @if (Model.RecentMessages.Count == 0)
+                {
+                    <p class="small dash-muted mb-0">Bu listede henüz mesaj yok.</p>
+                }
+
+                @foreach (var message in Model.RecentMessages)
+                {
+                    var isInbox = string.Equals(
+                    message.ReceiverEmail, email, StringComparison.OrdinalIgnoreCase)
+                    && !message.IsTrashedByReceiver
+                    && !message.IsDeletedByReceiver;
+
+                    var isSent = Model.SelectedTab == "sent" || !isInbox;
+                    var contact = isSent ? message.ReceiverEmail : message.SenderEmail;
+                    var unread = !isSent && !message.IsRead;
+
+                    <a asp-controller="Message" asp-action="Detail"
+                       asp-route-id="@message.MessageId" asp-route-sent="@isSent"
+                       class="dash-message">
+                        <span class="dash-icon" aria-hidden="true">
+                            <i class="bi @(isSent ? "bi-send" : "bi-inbox")"></i>
+                        </span>
+
+                        <span class="dash-message-info text-break">
+                            <span class="d-block @(unread ? "fw-bold" : "fw-semibold")">
+                                @(string.IsNullOrWhiteSpace(message.Subject) ? "Konusuz" : message.Subject)
+                            </span>
+                            <span class="d-block small dash-muted">
+                                @(isSent ? $"Kime: {contact}" : $"Kimden: {contact}")
+                                @if (unread)
+                                {
+                                    <span class="dash-unread"> · Okunmamış</span>
+                                }
+                            </span>
+                        </span>
+
+                        <time class="small dash-muted text-nowrap"
+                              datetime="@message.SendDate.ToString("s")">
+                            @message.SendDate.ToString("dd.MM HH:mm")
+                        </time>
+                    </a>
+                }
+            </section>
+        </div>
+
+        <div class="col-12 col-lg-5">
+            <section class="dash-card p-3 p-md-4" aria-labelledby="category-title">
+                <h2 id="category-title" class="h5 fw-bold mb-3">Kategori Dağılımı</h2>
+
+                @if (Model.CategorySummaries.Count == 0)
+                {
+                    <p class="small dash-muted mb-0">Henüz kategori yok.</p>
+                }
+                else
+                {
+                    <ul class="list-unstyled d-grid gap-3 mb-0">
+                        @for (var index = 0; index < Model.CategorySummaries.Count; index++)
+                        {
+                            var category = Model.CategorySummaries[index];
+                            var share = categoryTotal > 0
+                            ? 100.0 * category.MessageCount / categoryTotal
+                            : 0;
+                            var width = share.ToString(
+                            "0.##", System.Globalization.CultureInfo.InvariantCulture);
+
+                            <li data-tone="@categoryTones[index % categoryTones.Length]">
+                                <div class="d-flex justify-content-between gap-2 small mb-1">
+                                    <span class="text-break">@category.CategoryName</span>
+                                    <strong>@category.MessageCount</strong>
+                                </div>
+                                <div class="dash-progress" aria-hidden="true">
+                                    <span style="width: @(width)%"></span>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }
+            </section>
+        </div>
+    </div>
+</section>
