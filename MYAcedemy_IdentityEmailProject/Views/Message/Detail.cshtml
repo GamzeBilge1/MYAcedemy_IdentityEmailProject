@@ -4,23 +4,15 @@
     ViewData["Title"] = Model.Subject;
     var isSent = ViewData["IsSent"] is true;
     ViewData["ActiveMenu"] = isSent ? "sent" : "inbox";
-    var sender = isSent ? Model.ReceiverEmail : Model.SenderEmail;
     Layout = "~/Views/MessageLayout/Index.cshtml";
 
-
-    var initial = string.IsNullOrWhiteSpace(sender)
+    var contactEmail = isSent ? Model.ReceiverEmail : Model.SenderEmail;
+    var initial = string.IsNullOrWhiteSpace(contactEmail)
         ? "?"
-        : sender.Substring(0, 1).ToUpper();
+        : contactEmail.Substring(0, 1).ToUpper();
 }
 
 <section style="max-width: 960px;">
-@*     <a asp-controller="Message" asp-action="Inbox"
-       class="d-inline-flex align-items-center gap-2 mb-3"
-       style="color: var(--accent-dark);">
-        <i class="bi bi-arrow-left" aria-hidden="true"></i>
-        Gelen Kutusu’na dön
-    </a> *@
-
     <article class="panel p-3 p-md-4">
         <header class="pb-3" style="border-bottom: 1px solid var(--border);">
             <h1 class="h4 fw-bold mb-3 text-break">@Model.Subject</h1>
@@ -34,8 +26,10 @@
                 </span>
 
                 <div class="flex-grow-1 text-break">
-                    <div class="small" style="color: var(--muted);">Gönderen</div>
-                    <div class="fw-semibold">@sender</div>
+                    <div class="small" style="color: var(--muted);">
+                        @(isSent ? "Alıcı" : "Gönderen")
+                    </div>
+                    <div class="fw-semibold">@contactEmail</div>
                 </div>
 
                 <time class="small" style="color: var(--muted);"
@@ -49,5 +43,30 @@
              style="white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.75;">
             @Model.MessageDetail
         </div>
+
+        <footer class="d-flex flex-wrap gap-2 mt-3 pt-3"
+                style="border-top: 1px solid var(--border);">
+            @if (!isSent)
+            {
+                <a asp-controller="Message"
+                   asp-action="Reply"
+                   asp-route-id="@Model.MessageId"
+                   class="btn rounded-pill d-inline-flex align-items-center gap-2"
+                   style="background: var(--lavender); color: var(--accent-dark);">
+                    <i class="bi bi-reply" aria-hidden="true"></i>
+                    Yanıtla
+                </a>
+            }
+
+            <a asp-controller="Message"
+               asp-action="Forward"
+               asp-route-id="@Model.MessageId"
+               asp-route-sent="@isSent"
+               class="btn rounded-pill d-inline-flex align-items-center gap-2"
+               style="border: 1px solid var(--border); color: var(--accent-dark);">
+                <i class="bi bi-forward" aria-hidden="true"></i>
+                İlet
+            </a>
+        </footer>
     </article>
 </section>

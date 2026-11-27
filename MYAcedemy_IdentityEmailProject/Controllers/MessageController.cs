@@ -462,7 +462,80 @@ namespace MYAcedemy_IdentityEmailProject.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction("Trash");
         }
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> Reply(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
 
+            if (user == null || string.IsNullOrWhiteSpace(user.Email))
+                return Challenge();
+
+            var message = await _context.Messages.FirstOrDefaultAsync(m =>
+                m.MessageId == id
+                && m.ReceiverEmail == user.Email
+                && !m.IsTrashedByReceiver
+                && !m.IsDeletedByReceiver);
+
+            if (message == null)
+                return NotFound();
+
+            var model = new CreateMessageViewModel
+            {
+                ReceiverEmail = message.SenderEmail,
+                Subject = message.Subject.StartsWith("Yanıt:", StringComparison.OrdinalIgnoreCase)
+                    ? message.Subject
+                    : $"Yanıt: {message.Subject}",
+                MessageDetail = "",
+                CategoryId = message.CategoryId
+            };
+
+            ViewBag.Categories = new SelectList(
+                await _context.Categories.ToListAsync(),
+                "CategoryId",
+                "CategoryName");
+
+            return View("CreateMessage", model);
+        }
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> Forward(int id, bool sent = false)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null || string.IsNullOrWhiteSpace(user.Email))
+                return Challenge();
+
+            var message = await _context.Messages.FirstOrDefaultAsync(m =>
+                m.MessageId == id &&
+                (sent
+                    ? m.SenderEmail == user.Email
+                        && !m.IsTrashedBySender && !m.IsDeletedBySender
+                    : m.ReceiverEmail == user.Email
+                        && !m.IsTrashedByReceiver && !m.IsDeletedByReceiver));
+
+            if (message == null)
+                return NotFound();
+
+            var subject = message.Subject ?? "";
+
+            var model = new CreateMessageViewModel
+            {
+                ReceiverEmail = "",
+                Subject = subject.StartsWith("İletilen:", StringComparison.OrdinalIgnoreCase)
+                    ? subject
+                    : $"İletilen: {subject}",
+                MessageDetail = message.MessageDetail ?? "",
+                CategoryId = message.CategoryId
+            };
+
+            ViewBag.Categories = new SelectList(
+                await _context.Categories.ToListAsync(),
+                "CategoryId",
+                "CategoryName");
+
+            return View("CreateMessage", model);
+        }
     }
 
 }
